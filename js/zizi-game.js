@@ -25,6 +25,10 @@ const config = {
             debug: false
         }
     },
+    scale: {
+        mode: Phaser.Scale.FIT,         // Scales the game to fit the screen
+        autoCenter: Phaser.Scale.CENTER_BOTH
+    },
     scene: {
         preload: preload,
         create: create,
@@ -353,3 +357,16 @@ function winGame(scene, targetType) {
     // Optionally pause the game physics to prevent further movement
     scene.physics.world.pause();
 }
+
+document.getElementById('upBtn').addEventListener('click', () => {
+    tryMove('up', game.scene.scenes[0]);
+});
+document.getElementById('downBtn').addEventListener('click', () => {
+    tryMove('down', game.scene.scenes[0]);
+});
+document.getElementById('leftBtn').addEventListener('click', () => {
+    tryMove('left', game.scene.scenes[0]);
+});
+document.getElementById('rightBtn').addEventListener('click', () => {
+    tryMove('right', game.scene.scenes[0]);
+});

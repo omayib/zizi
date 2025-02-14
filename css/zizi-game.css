@@ -23,4 +23,22 @@
     text-align: center;
     border-radius: 8px;
   }
+  #mobile-controls {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 10px;
+  }
+  
+  #mobile-controls button {
+    padding: 10px 15px;
+    font-size: 16px;
+  }
+  @media (max-width: 600px) {
+    #mobile-controls button {
+      padding: 8px 12px;
+      font-size: 14px;
+    }
+  }
   

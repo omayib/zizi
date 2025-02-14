@@ -58,6 +58,12 @@ function mg_display_game() {
     ?>
     <div id="zizi-game-container">
         <canvas id="ziziGameCanvas"></canvas>
+        <div id="mobile-controls">
+            <button id="upBtn">↑</button>
+            <button id="downBtn">↓</button>
+            <button id="leftBtn">←</button>
+            <button id="rightBtn">→</button>
+        </div>
     </div>
     <!-- Win Modal Popup -->
     <div id="winModal" style="display:none;">
