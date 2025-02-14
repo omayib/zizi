@@ -322,30 +322,33 @@ function winGame(scene, targetType) {
 
     // Set up the Play Again button
     document.getElementById('playAgainBtn').addEventListener('click', () => {
-        location.reload(); // Restart the game
+         // Restart the current scene
+        scene.scene.restart();
+
+        // Optionally, hide the modal if it remains visible
+        document.getElementById('winModal').style.display = 'none';
     });
 
     // Determine the URL based on targetType
     let targetUrl = "";
     switch (targetType) {
         case "programmer":
-            targetUrl = "https://yourwebsite.com/programmer-page";
+            targetUrl = "https://informatika.amikom.ac.id/bagaimana-menjadi-programmer-masa-depan-di-era-ai/";
             break;
         case "contentCreator":
-            targetUrl = "https://yourwebsite.com/content-creator-page";
+            targetUrl = "https://informatika.amikom.ac.id/lebih-dari-sekadar-hobi-konten-kreator-memang-menjajikan/";
             break;
         case "freelancer":
-            targetUrl = "https://yourwebsite.com/freelancer-page";
+            targetUrl = "https://informatika.amikom.ac.id/gaji-puluhan-juta-per-bulan-alumni-informatika-lulus-tanpa-skripsi/";
             break;
         default:
-            targetUrl = "https://yourwebsite.com/default-page";
+            targetUrl = "https://informatika.amikom.ac.id/kurikulum";
             break;
     }
 
-    // Set up the Visit Page button with the target-specific URL
-    document.getElementById('visitPageBtn').addEventListener('click', () => {
-        window.location.href = targetUrl;
-    });
+    document.getElementById('visitPageBtn').onclick = () => {
+        window.open(targetUrl, '_blank');
+    };
 
     // Optionally pause the game physics to prevent further movement
     scene.physics.world.pause();

@@ -62,9 +62,9 @@ function mg_display_game() {
     <!-- Win Modal Popup -->
     <div id="winModal" style="display:none;">
       <div class="modal-content">
-        <p>Congratulations! You've reached your dream!</p>
-        <button id="playAgainBtn">Play Again</button>
-        <button id="visitPageBtn">Visit Other Page</button>
+        <p>Wow! You've reached your dream!</p>
+        <button id="playAgainBtn">Main lagi</button>
+        <button id="visitPageBtn">Pelajari Journey ini</button>
       </div>
     </div>
     <?php
