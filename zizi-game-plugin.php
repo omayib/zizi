@@ -15,9 +15,9 @@ function mg_enqueue_scripts() {
     // Phaser library for game logic
     wp_enqueue_script(
         'phaser',
-        'https://cdn.jsdelivr.net/npm/phaser@3.55.2/dist/phaser.js',
+        'https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser-arcade-physics.min.js',
         array(),
-        null,
+        '3.60.0',
         true
     );
     
@@ -50,30 +50,30 @@ function mg_enqueue_scripts() {
         'baseUrl' => plugin_dir_url( __FILE__ ) . 'assets/'
     ) );
 }
+function mg_add_viewport_meta() {
+    echo '<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">';
+}
+function mg_add_preconnect() {
+    echo '<link rel="preconnect" href="https://cdn.jsdelivr.net">';
+}
+add_action('wp_head', 'mg_add_preconnect', 0);
+add_action('wp_head', 'mg_add_viewport_meta');
 add_action( 'wp_enqueue_scripts', 'mg_enqueue_scripts' );
 
 // Shortcode to display the zizi game
-function mg_display_game() {
-    ob_start();
-    ?>
-    <div id="zizi-game-container">
-        <canvas id="ziziGameCanvas"></canvas>
-        <div id="mobile-controls">
-            <button id="upBtn">↑</button>
-            <button id="downBtn">↓</button>
-            <button id="leftBtn">←</button>
-            <button id="rightBtn">→</button>
-        </div>
-    </div>
-    <!-- Win Modal Popup -->
-    <div id="winModal" style="display:none;">
-      <div class="modal-content">
-        <p>Wow! You've reached your dream!</p>
-        <button id="playAgainBtn">Main lagi</button>
-        <button id="visitPageBtn">Pelajari Journey ini</button>
-      </div>
-    </div>
-    <?php
-    return ob_get_clean();
+function zizi_game_shortcode() {
+    return '
+        <div class="zizi-game-wrapper">
+            <div id="zizi-game-container">
+                
+            </div>
+            <div id="winModal" style="display:none;">
+                <div class="modal-content">
+                    <p>Wow! Youve reached your dream!</p>
+                    <button id="playAgainBtn">Main lagi</button>
+                    <button id="visitPageBtn">Pelajari Journey ini</button>
+                </div>
+            </div>
+        </div>';
 }
-add_shortcode( 'zizi_game', 'mg_display_game' );
+add_shortcode('zizi_game', 'zizi_game_shortcode');

@@ -1,3 +1,6 @@
+
+
+
 // Global variables used in the scene
 let cellSize, rows, cols;
 let grid = [];      // 2D array representing zizi cells
@@ -11,12 +14,13 @@ let playerCell = { row: 0, col: 0 }; // Player’s current grid coordinates
 let targets = [];   // Array holding the three target sprites
 let beams = [];     // Array holding beam obstacles
 let isMoving = false; // Prevent overlapping moves
+let isDraggingBeam = false;
+let beamDragged = false;
+
 
 // Phaser game configuration
 const config = {
     type: Phaser.AUTO,
-    width: 800,
-    height: 400,
     backgroundColor: "#ffffff", // sets background color to white
     parent: 'zizi-game-container',
     physics: {
@@ -26,17 +30,42 @@ const config = {
         }
     },
     scale: {
-        mode: Phaser.Scale.FIT,         // Scales the game to fit the screen
-        autoCenter: Phaser.Scale.CENTER_BOTH
+        mode: Phaser.Scale.RESIZE,         // Scales the game to fit the screen
+        autoCenter: Phaser.Scale.CENTER_BOTH,
+        width: '100%',
+        height: '100%',
+        autoRound: true, // Add this for crisp rendering
+        parent: 'zizi-game-container',
+        expandParent: false // Important for WordPress containment
     },
     scene: {
         preload: preload,
         create: create,
         update: update
+    },
+    input: {
+        touch: {
+            capture: true,
+            preventDefault: true // Add this here instead
+        }
     }
 };
 
-const game = new Phaser.Game(config);
+function handleResize() {
+    const container = document.getElementById('zizi-game-container');
+    if (game && game.scale && container) {
+        const rect = container.getBoundingClientRect();
+        game.scale.resize(rect.width, rect.height);
+        game.events.emit('resize', rect);
+    }
+}
+
+// Add debounced resize listener
+let resizeTimeout;
+window.addEventListener('resize', () => {
+    clearTimeout(resizeTimeout);
+    resizeTimeout = setTimeout(handleResize, 100);
+});
 
 
 function preload() {
@@ -53,13 +82,20 @@ function preload() {
 
     // Load celebration sound
     this.load.audio('celebration', ziziGameAssets.baseUrl + 'level-win-6416.mp3');
+    const dpr = window.devicePixelRatio || 1;
+    this.load.setPath(ziziGameAssets.baseUrl + (dpr > 1 ? 'hd/' : 'sd/'));
 }
 
 function create() {
     // Define cell size and calculate zizi dimensions (columns & rows)
-    cellSize = 80;
+    this.input.addPointer(3); // Enable multi-touch
+    const baseSize = Math.min(this.scale.width, this.scale.height);
+    cellSize = Phaser.Math.Clamp(Math.floor(baseSize / 8), 60, 100);
     cols = Math.floor(this.cameras.main.width / cellSize);
     rows = Math.floor(this.cameras.main.height / cellSize);
+    let touchStartX = 0;
+    let touchStartY = 0;
+    const minSwipeDistance = 30;
 
     // --- 1. Create the grid of cells ---
     for (let row = 0; row < rows; row++) {
@@ -168,16 +204,57 @@ function create() {
         } while ((r === 0 && c === 0) ||
                  targets.some(target => target.cellRow === r && target.cellCol === c));
         
-        let beamSprite = this.physics.add.sprite(c * cellSize + cellSize / 2, r * cellSize + cellSize / 2, 'beam')
-                         .setInteractive();
-        // Scale down the beam sprite (adjust the scale factor as needed)
-        beamSprite.setScale(0.05);
+        let beamSprite = this.physics.add.sprite(c * cellSize + cellSize / 2, r * cellSize + cellSize / 2, 'beam');
+        
+        beamSprite.setInteractive(
+            new Phaser.Geom.Rectangle(0, 0, beamSprite.width, beamSprite.height),
+            Phaser.Geom.Rectangle.Contains
+          );
+        beamSprite.targetType = 'beam';
         beamSprite.cellRow = r;
         beamSprite.cellCol = c;
         beams.push(beamSprite);
         this.input.setDraggable(beamSprite);
     }
+    this.input.on('pointerdown', (pointer) => {
+        
+        beamDragged = false;
+        touchStartX = pointer.x;
+        touchStartY = pointer.y;
+    });
 
+    this.input.on('pointerup', (pointer) => {
+        if (isMoving || beamDragged) return;
+        const distX = pointer.x - touchStartX;
+        const distY = pointer.y - touchStartY;
+                
+        const absX = Math.abs(distX);
+        const absY = Math.abs(distY);
+
+        if (Math.max(absX, absY) < minSwipeDistance) return;
+
+        if (absX > absY) {
+            if (distX > 0) tryMove('right', this);
+             else tryMove('left', this);
+          } else {
+              if (distY > 0) tryMove('down', this);
+              else tryMove('up', this);
+        }
+    });
+    // Drag events for beams
+    this.input.on('dragstart', function (pointer, gameObject) {
+        if (pointer.event && pointer.event.preventDefault) {
+            pointer.event.preventDefault();
+        }
+        if (gameObject.targetType === 'beam') {
+            isDraggingBeam = true;
+            beamDragged = true;
+            // Optionally stop the event from propagating further
+            if (pointer.event && pointer.event.stopPropagation) {
+                pointer.event.stopPropagation();
+            }
+        }
+    });
     // Allow beams to be dragged and snapped to grid
     this.input.on('drag', function (pointer, gameObject, dragX, dragY) {
         gameObject.x = dragX;
@@ -190,6 +267,11 @@ function create() {
         gameObject.y = newRow * cellSize + cellSize / 2;
         gameObject.cellCol = newCol;
         gameObject.cellRow = newRow;
+        isDraggingBeam = false;  
+        beamDragged = true;
+        setTimeout(() => {
+            beamDragged = false;
+        }, 100);
     });
 
     // --- 7. Setup discrete player movement ---
@@ -205,6 +287,8 @@ function create() {
             tryMove(direction, this);
         }
     });
+
+    handleResize();
 }
 
 function update() {
@@ -358,15 +442,16 @@ function winGame(scene, targetType) {
     scene.physics.world.pause();
 }
 
-document.getElementById('upBtn').addEventListener('click', () => {
-    tryMove('up', game.scene.scenes[0]);
-});
-document.getElementById('downBtn').addEventListener('click', () => {
-    tryMove('down', game.scene.scenes[0]);
-});
-document.getElementById('leftBtn').addEventListener('click', () => {
-    tryMove('left', game.scene.scenes[0]);
-});
-document.getElementById('rightBtn').addEventListener('click', () => {
-    tryMove('right', game.scene.scenes[0]);
+// Wrap game initialization in DOM ready check
+document.addEventListener('DOMContentLoaded', () => {
+    const game = new Phaser.Game(config);
+    window.game = game; // Make globally available
+    
+    if (game.canvas) {
+        game.canvas.addEventListener('touchstart', function(e) {
+            e.preventDefault();
+        }, { passive: false });
+    }
+
+
 });
