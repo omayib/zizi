@@ -12,6 +12,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 // Enqueue scripts and styles
 function mg_enqueue_scripts() {
+    if ( ! is_front_page() ) {
+        return;
+    }
     // Phaser library for game logic
     wp_enqueue_script(
         'phaser',
