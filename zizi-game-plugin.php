@@ -33,11 +33,23 @@ function mg_enqueue_scripts() {
         true
     );
 
+    // Enqueue p5.js from a CDN.
+    wp_enqueue_script('p5-js', 'https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.6.0/p5.min.js', array(), '1.6.0', true);
+
+
     // Custom zizi Game script (adjust dependencies if needed)
+    // wp_enqueue_script(
+    //     'zizi-game-plugin-js',
+    //     plugin_dir_url( __FILE__ ) . 'js/zizi-game.js',
+    //     array('phaser', 'confetti'),
+    //     '1.0',
+    //     true
+    // );
+
     wp_enqueue_script(
         'zizi-game-plugin-js',
-        plugin_dir_url( __FILE__ ) . 'js/zizi-game.js',
-        array('phaser', 'confetti'),
+        plugin_dir_url( __FILE__ ) . 'js/move-block.js',
+        array('confetti','p5-js'),
         '1.0',
         true
     );
@@ -67,8 +79,8 @@ add_action( 'wp_enqueue_scripts', 'mg_enqueue_scripts' );
 function zizi_game_shortcode() {
     return '
         <div class="zizi-game-wrapper">
-            <div id="zizi-game-container">
-                
+             <div id="zizi-game-container">
+                <div id="grid"></div>
             </div>
             <div id="winModal" style="display:none;">
                 <div class="modal-content">
